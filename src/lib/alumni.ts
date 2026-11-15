@@ -111,7 +111,23 @@ export async function exportAll(): Promise<Record<string, unknown>[]> {
   }));
 }
 
-export async function ping(): Promise<boolean> {
-  const { error } = await db().from('alumni').select('id').limit(1);
-  return !error;
+export type PingResult = { ok: true } | { ok: false; code?: string; reason?: 'env-missing' | 'exception' };
+
+/** Health check. Logs the full error server-side; returns only a safe code for the browser. */
+export async function ping(): Promise<PingResult> {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[health] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set');
+    return { ok: false, reason: 'env-missing' };
+  }
+  try {
+    const { error } = await db().from('alumni').select('id').limit(1);
+    if (error) {
+      console.error('[health]', error);
+      return { ok: false, code: error.code || 'unknown' };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error('[health]', e);
+    return { ok: false, reason: 'exception' };
+  }
 }
