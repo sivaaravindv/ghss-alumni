@@ -120,7 +120,11 @@ export function RegisterForm({ villages, badLink }: { villages: string[]; badLin
         <form id="form" noValidate onSubmit={submit}>
           {/* Honeypot for bots – hidden from people */}
           <div className="hp" aria-hidden="true">
-            <input tabIndex={-1} autoComplete="off" value={f.website} onChange={e => set('website', e.target.value)} name="website" />
+            {/* Neutral name + ignore hints so browser autofill / password managers never fill it
+                (Chrome autofilled a field named "website" with the user's company and address). */}
+            <input type="text" tabIndex={-1} autoComplete="one-time-code" name="hp_x9" id="hp_x9"
+              data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"
+              value={f.website} onChange={e => set('website', e.target.value)} />
           </div>
 
           {field('name', 'name', text('name', { autoComplete: 'name' }), { req: true, err: 'required' })}

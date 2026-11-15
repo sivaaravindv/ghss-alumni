@@ -9,7 +9,10 @@ export async function POST(req: Request) {
   try { body = await req.json(); } catch { return NextResponse.json({ ok: false, code: 'bad' }, { status: 400 }); }
 
   // Honeypot: real people never see or fill the "website" field
-  if (body.website) return NextResponse.json({ ok: false, code: 'bad' }, { status: 400 });
+  if (body.website) {
+    console.warn('[register] honeypot filled – rejected', { len: String(body.website).length });
+    return NextResponse.json({ ok: false, code: 'bad' }, { status: 400 });
+  }
 
   const checked = checkRegistration(body as Partial<RegisterInput>);
   if (!checked.ok) return NextResponse.json(checked, { status: 400 });
